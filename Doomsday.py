@@ -152,7 +152,19 @@ def printExplanation(dateParts):
     carry += centuryPartRemainder//4
     print(F"Remove the Sevens is {carry%7}")
     mMonth,mDay,strDate = calculateDoomsDay(mysteryDate)
-    print(F"\nFor {mysteryDate.strftime('%m/%d')} the doomsday is {strDate}")   
+    print(F"\nFor {mysteryDate.strftime('%m/%d')} the doomsday is {strDate}")
+
+def getNumOfTrys():
+    success = False
+    while not success:
+        numOfTrys = input("Number of questions?:")
+        try:
+            numOfTrys = int(numOfTrys)
+            success = True
+        except:
+            print("\nMust be an integer, try again.\n")
+            success = False
+    return numOfTrys
 
 if __name__ == '__main__':
     tts = pyttsx3.init()
@@ -160,11 +172,13 @@ if __name__ == '__main__':
         print('\n'*100)
         score = 0
         count = 0
+        miss = 0
         level = pick_a_level()
+        numOfTrys = getNumOfTrys()
         baseScore = level * 10
         LowestHighScore = hs.getData()[-1]['Score']
         print(f'The score to beat is {LowestHighScore}')
-        while True:
+        for trynum in range(numOfTrys):
             print(f'Score: {score} Count: {count}')    
             mysteryDate, dateParts = pick_a_date(level)
             mDayOfWeek = mysteryDate.strftime('%A')
@@ -179,21 +193,23 @@ if __name__ == '__main__':
                 score = int(round(score,0))
                 count += 1
             else:
-                tts.say(f"\nNo, it's a {mDayOfWeek}\n")
-                tts.say(f"\nYour final score is {score}")
-                tts.runAndWait()
                 print(f"\nNo, it's a {mDayOfWeek}")
-                print(mysteryDate.strftime("%B %d, %Y"))             
-                #printExplanation(dateParts)
-                highscores = hs.getData()
-                highscores = hs.compareScores(highscores,score)
-                highscores = hs.sortScores(highscores)
-                hs.writeData(['Name', 'Score'],highscores)
-                print(f"\nFinal Score: {score}, Final Count:{count}")
-                if input("Print high scores? (y/n)").upper() == 'Y':
-                    hs.printHighscores(highscores,score)
-                break
-        
+                tts.say(f"\nNo, it's a {mDayOfWeek}\n")
+                print(mysteryDate.strftime("%B %d, %Y"))
+                miss += 1  
+                
+
+        tts.say(f"\nYour final score is {score}")
+        tts.runAndWait()
+        #printExplanation(dateParts)
+        highscores = hs.getData()
+        highscores = hs.compareScores(highscores,score)
+        highscores = hs.sortScores(highscores)
+        hs.writeData(['Name', 'Score'],highscores)
+        print(f"\nFinal Score: {score}, Final Count:{count} out of {count + miss}")
+        print(f"Percentage = {(count/(count+miss)):.1%}")
+        if input("Print high scores? (y/n)").upper() == 'Y':
+            hs.printHighscores(highscores,score)
         if input("Again(y/n): ").upper()[0] == 'N':
             break
 
