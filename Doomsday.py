@@ -102,10 +102,18 @@ def getCenturyRemainder(year):
 
 def isLeapYear(md):
     centuryRemainder = getCenturyRemainder(md.year)
-    if centuryRemainder % 4 == 0:
-        return True
+    endOfCentury = md.year % 100 == 0
+    divisibleBy400 = md.year % 400 == 0
+    if endOfCentury:
+        if divisibleBy400:
+            return True
+        else:
+            return False
     else:
-        return False
+        if centuryRemainder % 4 == 0:
+            return True
+        else:
+            return False
 
 def calculateDoomsDay(md):
     '''input mysteryDate (md)
@@ -179,7 +187,7 @@ if __name__ == '__main__':
         LowestHighScore = hs.getData()[-1]['Score']
         print(f'The score to beat is {LowestHighScore}')
         for trynum in range(numOfTrys):
-            print(f'Score: {score} Count: {count}')    
+            print(f'Score: {score} Count: {count}/{count + miss}')    
             mysteryDate, dateParts = pick_a_date(level)
             mDayOfWeek = mysteryDate.strftime('%A')
             startTime = dt.now()
@@ -201,7 +209,7 @@ if __name__ == '__main__':
 
         tts.say(f"\nYour final score is {score}")
         tts.runAndWait()
-        #printExplanation(dateParts)
+        printExplanation(dateParts)
         highscores = hs.getData()
         highscores = hs.compareScores(highscores,score)
         highscores = hs.sortScores(highscores)
