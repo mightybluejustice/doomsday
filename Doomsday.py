@@ -1,6 +1,7 @@
 #from _typeshed import StrPath
 from datetime import date as d,timedelta as t, datetime as dt
 import random as r
+from numpy import MAY_SHARE_BOUNDS
 import pyttsx3
 import doomsdayFuncs.highscore as hs
 
@@ -136,32 +137,61 @@ def calculateDoomsDay(md):
         else:
             adjust = 0
         dd = {1:3,
-              2:28}
+              2:0}
         day = dd[md.month] + adjust
     
     strDate = str(md.month) + '/' + str(day)
     return md.month, day, strDate
 
-def printExplanation(dateParts):
-    centuryAnchor = getCenturyAnchor(dateParts['year'])
-    centuryRemainder = getCenturyRemainder(dateParts['year'])
-    centuryPart = centuryRemainder//12*12
-    centuryPartRemainder = centuryRemainder-centuryPart
+def fix_7s(total):
+    if total < 0:
+        addor = abs(total)//7 * 7 + 7
+        newTotal = total + addor
+        print(F'{total} + {addor} is {newTotal}')
+        return newTotal
+    if total > 7:
+        sevens = int(total / 7)
+        subtractor = sevens * 7
+        newTotal = total - subtractor
+        print(f'{total} - {subtractor} = {newTotal}')
+        return newTotal
+    return total
 
-    print(F'Century is {(dateParts["year"] // 100)} so century Anchor is {centuryAnchor[1]} which is a {dayDict[centuryAnchor[1]]}')
-    print(F"Year in century is {centuryRemainder}\n")
+def printExplanation(dateParts, mysteryDate, dayDict):
 
-    print(F"Begin with {dayDict[centuryAnchor[1]]}")
-    print(F"Add centry part ({centuryPart}) which is {centuryRemainder//12}. ({dayDict[centuryAnchor[1]]} + {centuryRemainder//12} = {dayDict[centuryAnchor[1]] + centuryRemainder//12})")
-    carry = dayDict[centuryAnchor[1]] + centuryRemainder//12
-    print(F"Plus {centuryPartRemainder} to make ({centuryRemainder}) is {centuryPartRemainder + carry}")
-    carry += centuryPartRemainder
-    print(F"Plus {centuryPartRemainder//4} leapyears is {carry + centuryPartRemainder//4}")
-    carry += centuryPartRemainder//4
-    print(F"Remove the Sevens is {carry%7}")
-    mMonth,mDay,strDate = calculateDoomsDay(mysteryDate)
-    print(F"\nFor {mysteryDate.strftime('%m/%d')} the doomsday is {strDate}")
+    print(f'\nThe day you are trying to find is {mysteryDate.strftime("%B %d, %Y")}')
+    if isLeapYear(mysteryDate):
+        print('This is a leap year')
+    doomsday = calculateDoomsDay(mysteryDate)
+    print(f'The Doomsday for {mysteryDate.strftime("%B")} is {doomsday[2]}, so we subtract {doomsday[1]}')
+    print(f"Mystery Date({dateParts['day']}) minus the doomsday({doomsday[1]}) is {dateParts['day'] - doomsday[1]}")
+    total = dateParts['day'] - doomsday[1]
+    total = fix_7s(total)
 
+    centuryAnchor = dayDict[getCenturyAnchor(dateParts['year'])[1]]
+    print(F'\nCentury is {(dateParts["year"] // 100)} so century Anchor is {centuryAnchor}')
+    print(f'{total}(previous total) + {centuryAnchor}(Century Anchor) is {total + centuryAnchor}')
+    total = fix_7s(total + centuryAnchor)
+    
+    yearinCentury = getCenturyRemainder(dateParts['year']) 
+    twelvePart = yearinCentury//12*12
+    numOfTwelves = yearinCentury//12
+    additionalYears = yearinCentury - twelvePart
+    leaps = additionalYears//4
+
+    print(F"\nYear in century is {yearinCentury}")
+    print(f'so the closest 12 is {twelvePart} which is {numOfTwelves} to previous total({total}) is {numOfTwelves + total}')
+    total = fix_7s(numOfTwelves + total)
+
+    if additionalYears > 0:
+        print(f'plus the additional {additionalYears} years is {additionalYears + total}')
+        total = fix_7s(additionalYears + total)
+
+    if leaps > 0:
+        print(f'plus {leaps} leap years is {total + leaps}')
+        total = fix_7s(total + leaps)
+    print(mysteryDate.strftime('%A'))
+    
 def getNumOfTrys():
     success = False
     while not success:
@@ -204,12 +234,13 @@ if __name__ == '__main__':
                 print(f"\nNo, it's a {mDayOfWeek}")
                 tts.say(f"\nNo, it's a {mDayOfWeek}\n")
                 print(mysteryDate.strftime("%B %d, %Y"))
+                printExplanation(dateParts,mysteryDate, dayDict)
                 miss += 1  
                 
 
         tts.say(f"\nYour final score is {score}")
         tts.runAndWait()
-        printExplanation(dateParts)
+        
         highscores = hs.getData()
         highscores = hs.compareScores(highscores,score)
         highscores = hs.sortScores(highscores)
