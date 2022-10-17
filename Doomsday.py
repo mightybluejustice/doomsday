@@ -4,6 +4,7 @@ import random as r
 from numpy import MAY_SHARE_BOUNDS
 import pyttsx3
 import doomsdayFuncs.highscore as hs
+import os
 
 
 oneMinute = t(minutes=1)
@@ -205,9 +206,12 @@ def getNumOfTrys():
     return numOfTrys
 
 if __name__ == '__main__':
+
     tts = pyttsx3.init()
     while True:
-        print('\n'*100)
+        os.system("cls")
+        print("\nDOOMSDAY")
+        print("--------\n")
         score = 0
         count = 0
         miss = 0
