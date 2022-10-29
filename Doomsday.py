@@ -5,7 +5,7 @@ from numpy import MAY_SHARE_BOUNDS
 import pyttsx3
 import doomsdayFuncs.highscore as hs
 import os
-
+import doomsdayFuncs.streak as st
 
 oneMinute = t(minutes=1)
 dayDict = {'Sunday':0,
@@ -205,6 +205,8 @@ def getNumOfTrys():
             success = False
     return numOfTrys
 
+
+
 if __name__ == '__main__':
 
     tts = pyttsx3.init()
@@ -218,8 +220,9 @@ if __name__ == '__main__':
         level = pick_a_level()
         numOfTrys = getNumOfTrys()
         baseScore = level * 10
-        LowestHighScore = hs.getData()[-1]['Score']
-        print(f'The score to beat is {LowestHighScore}')
+        #LowestHighScore = hs.getData()[-1]['Score']
+        streak = st.getCurrentStreak()
+        print(f'Your current streak is {streak}')
         for trynum in range(numOfTrys):
             print(f'Score: {score} Count: {count}/{count + miss}')    
             mysteryDate, dateParts = pick_a_date(level)
@@ -234,25 +237,28 @@ if __name__ == '__main__':
                 score += int(round(baseScore - baseScore * ratio,0))
                 score = int(round(score,0))
                 count += 1
+                streak += 1
             else:
                 print(f"\nNo, it's a {mDayOfWeek}")
                 tts.say(f"\nNo, it's a {mDayOfWeek}\n")
                 print(mysteryDate.strftime("%B %d, %Y"))
                 printExplanation(dateParts,mysteryDate, dayDict)
                 miss += 1  
+                streak = st.breakStreak()
                 
 
-        tts.say(f"\nYour final score is {score}")
+        st.saveStreak(streak)
+        tts.say(f"\nYour current streak is {streak}")
         tts.runAndWait()
         
-        highscores = hs.getData()
-        highscores = hs.compareScores(highscores,score)
-        highscores = hs.sortScores(highscores)
-        hs.writeData(['Name', 'Score'],highscores)
-        print(f"\nFinal Score: {score}, Final Count:{count} out of {count + miss}")
+        #highscores = hs.getData()
+        #highscores = hs.compareScores(highscores,score)
+        #highscores = hs.sortScores(highscores)
+        #hs.writeData(['Name', 'Score'],highscores)
+        #print(f"\nFinal Score: {score}, Final Count:{count} out of {count + miss}")
         print(f"Percentage = {(count/(count+miss)):.1%}")
-        if input("Print high scores? (y/n)").upper() == 'Y':
-            hs.printHighscores(highscores,score)
+        #if input("Print high scores? (y/n)").upper() == 'Y':
+        #    hs.printHighscores(highscores,score)
         if input("Again(y/n): ").upper()[0] == 'N':
             break
 
