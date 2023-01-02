@@ -5,9 +5,10 @@ def getCurrentStreak():
     return streak
 
 
-def breakStreak():
+def breakStreak(tts,streak):
     with open('doomsdayFuncs\streak.txt','w') as file:
         file.write('0')
+    tts.say(f"Your streak was broken at {streak}")
     return 0
 
 def saveStreak(streak):

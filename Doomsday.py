@@ -244,7 +244,7 @@ if __name__ == '__main__':
                 print(mysteryDate.strftime("%B %d, %Y"))
                 printExplanation(dateParts,mysteryDate, dayDict)
                 miss += 1  
-                streak = st.breakStreak()
+                streak = st.breakStreak(tts,streak)
                 
 
         st.saveStreak(streak)
