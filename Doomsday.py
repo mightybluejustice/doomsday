@@ -22,13 +22,20 @@ def pick_a_date(level):
         if level == 1:
             year = today.year
         elif level == 2:
-            year = r.randint(1900,2100)
+            year = r.randint(1800,2199)
         elif level == 3:
             year = r.randint(1800,2199)
+            if r.randint(1,2) == 1:
+                while year % 4 != 0:
+                    year = r.randint(1800,2199)            
         elif level == 4:
             year = r.randint(0,9999)
+            
         day = r.randint(1,31)
-        month = r.randint(1,12)
+        if level == 3:
+            month = r.randint(1,2)
+        else:
+            month = r.randint(1,12)
     
         try:
             mysteryDate = d(year,month,day)
@@ -54,6 +61,7 @@ def getGuess(mysteryDate):
        Returns guess with first letter capitalized
     '''
     while True:
+        print('\n' + mysteryDate.strftime("%B %d, %Y"))
         tts.say(mysteryDate.strftime("%B %d, %Y"))
         tts.runAndWait()
         guess = input('?' + ': ')
@@ -71,7 +79,10 @@ def pick_a_level():
     '''Asks user to input level
        Returns level picked
     '''
+    menu = """1) This year\n2) 1800-2199\n3) 1800-2199 leap years\n4) 0-9999\n"""
+
     while True:
+        print(menu)
         level = input("Level 1-4: ")
         if isLevel(level):
             level = int(level)
@@ -81,7 +92,7 @@ def pick_a_level():
     return level
 
 def isLevel(level):
-    ''' Tests if level is '1' or '2'
+    ''' Tests if level between 1 and 4
         Returns True or False
     '''
     answer = True
@@ -205,7 +216,19 @@ def getNumOfTrys():
             success = False
     return numOfTrys
 
+def testLoop():
+    if round>15:
+        return False
 
+    if round == 0:
+        return True 
+
+    if streak == 0:
+        return True
+    
+    if streak % 5 == 0:
+        return False
+    return True
 
 if __name__ == '__main__':
 
@@ -214,17 +237,16 @@ if __name__ == '__main__':
         os.system("cls")
         print("\nDOOMSDAY")
         print("--------\n")
-        score = 0
-        count = 0
         miss = 0
         level = pick_a_level()
-        numOfTrys = getNumOfTrys()
-        baseScore = level * 10
+        #numOfTrys = getNumOfTrys()
         #LowestHighScore = hs.getData()[-1]['Score']
         streak = st.getCurrentStreak()
         print(f'Your current streak is {streak}')
-        for trynum in range(numOfTrys):
-            print(f'Score: {score} Count: {count}/{count + miss}')    
+        round = 0
+        while round <= 15 and (round == 0 or streak == 0 or (streak % 5 != 0 and streak != 0)):
+            round += 1
+            print(f"Streak: {streak}")    
             mysteryDate, dateParts = pick_a_date(level)
             mDayOfWeek = mysteryDate.strftime('%A')
             startTime = dt.now()
@@ -234,9 +256,6 @@ if __name__ == '__main__':
                 speed = endTime-startTime
                 print('Yes! You win!', (speed))
                 ratio = speed / oneMinute if speed / oneMinute < 1 else 1
-                score += int(round(baseScore - baseScore * ratio,0))
-                score = int(round(score,0))
-                count += 1
                 streak += 1
             else:
                 print(f"\nNo, it's a {mDayOfWeek}")
@@ -251,14 +270,7 @@ if __name__ == '__main__':
         tts.say(f"\nYour current streak is {streak}")
         tts.runAndWait()
         
-        #highscores = hs.getData()
-        #highscores = hs.compareScores(highscores,score)
-        #highscores = hs.sortScores(highscores)
-        #hs.writeData(['Name', 'Score'],highscores)
-        #print(f"\nFinal Score: {score}, Final Count:{count} out of {count + miss}")
-        print(f"Percentage = {(count/(count+miss)):.1%}")
-        #if input("Print high scores? (y/n)").upper() == 'Y':
-        #    hs.printHighscores(highscores,score)
+        print(f"Streak: {streak}")
         if input("Again(y/n): ").upper()[0] == 'N':
             break
 
